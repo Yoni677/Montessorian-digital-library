@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Materials - School Learning Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .upload-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .upload-btn {
+            background-color: #27ae60;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .upload-btn:hover {
+            background-color: #219a52;
+        }
+
+        .upload-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            float: right;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #27ae60;
+            transition: width 0.3s ease;
+        }
+
+        .status-message {
+            margin-top: 10px;
+            text-align: center;
+            color: #333;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>School Learning Portal</h1>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="upload-form">
+            <h2>Upload Learning Material</h2>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="title">Material Title</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="grade">Grade</label>
+                    <select id="grade" required>
+                        <option value="">Select Grade</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" required>
+                        <option value="">Select Subject</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Science">Science</option>
+                        <option value="English">English</option>
+                        <option value="Social Studies">Social Studies</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Physical Education">Physical Education</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pdf">PDF File</label>
+                    <input type="file" id="pdf" accept=".pdf" required>
+                </div>
+                <button type="submit" class="upload-btn" id="uploadBtn">Upload Material</button>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div id="statusMessage" class="status-message"></div>
+                <div id="errorMessage" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtDT9NXpij5_XYNn0i8lMT9qZFZt4zaT4",
+            authDomain: "examprep-5ed62.firebaseapp.com",
+            databaseURL: "https://examprep-5ed62-default-rtdb.firebaseio.com",
+            projectId: "examprep-5ed62",
+            storageBucket: "examprep-5ed62.appspot.com",
+            messagingSenderId: "831664827174",
+            appId: "1:831664827174:web:59185778d2835e94c7afe7",
+            measurementId: "G-T08HHN32M0"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+        const db = getFirestore(app);
+
+        // Check authentication state
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // Redirect to login if not authenticated
+                window.location.href = 'teacher-login.html';
+            }
+        });
+
+        // Populate grade dropdown with text-based grades
+        const gradeSelect = document.getElementById('grade');
+        const gradeNames = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+        gradeNames.forEach((gradeName, index) => {
+            const option = document.createElement('option');
+            option.value = `Grade ${gradeName}`;
+            option.textContent = `Grade ${gradeName}`;
+            gradeSelect.appendChild(option);
+        });
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Handle file upload
+        const uploadForm = document.getElementById('uploadForm');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const statusMessage = document.getElementById('statusMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const grade = document.getElementById('grade').value;
+            const subject = document.getElementById('subject').value;
+            const file = document.getElementById('pdf').files[0];
+
+            if (!file) {
+                errorMessage.textContent = 'Please select a PDF file';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                uploadBtn.disabled = true;
+                progressBar.style.display = 'block';
+                errorMessage.style.display = 'none';
+                statusMessage.textContent = 'Uploading...';
+
+                // Upload file to Firebase Storage
+                const storageRef = ref(storage, `materials/${grade}/${subject}/${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Update progress bar
+                        const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progress.style.width = percentage + '%';
+                    },
+                    (error) => {
+                        console.error('Upload error:', error);
+                        errorMessage.textContent = 'Error uploading file. Please try again.';
+                        errorMessage.style.display = 'block';
+                        uploadBtn.disabled = false;
+                        progressBar.style.display = 'none';
+                        statusMessage.textContent = '';
+                    },
+                    async () => {
+                        // Get download URL and save metadata to Firestore
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        await addDoc(collection(db, 'materials'), {
+                            title,
+                            grade: grade, // Now storing as "Grade One", "Grade Two", etc.
+                            subject,
+                            downloadUrl: downloadURL,
+                            fileName: file.name,
+                            uploadDate: serverTimestamp(),
+                            uploadedBy: auth.currentUser.email
+                        });
+
+                        statusMessage.textContent = 'Upload completed successfully!';
+                        uploadBtn.disabled = false;
+                        uploadForm.reset();
+                        setTimeout(() => {
+                            progressBar.style.display = 'none';
+                            progress.style.width = '0%';
+                            statusMessage.textContent = '';
+                        }, 3000);
+                    }
+                );
+            } catch (error) {
+                console.error('Upload error:', error);
+                errorMessage.textContent = 'Error uploading file. Please try again.';
+                errorMessage.style.display = 'block';
+                uploadBtn.disabled = false;
+                progressBar.style.display = 'none';
+                statusMessage.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>
