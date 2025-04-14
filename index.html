@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Learning Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .grades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .grade-card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .grade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .teacher-login {
+            text-align: right;
+            padding: 20px;
+        }
+
+        .login-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+        }
+
+        .grade-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grades-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                padding: 10px;
+            }
+
+            .grade-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>School Learning Portal</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="teacher-login">
+            <a href="teacher-login.html" class="login-btn">
+                <i class="fas fa-user-tie"></i> Teacher Login
+            </a>
+        </div>
+
+        <div class="grades-grid" id="gradesContainer">
+            <!-- Grade cards will be dynamically added here -->
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOEl_rNKXKj0Qln3wKQaS8F_RSGh_vBRM",
+            authDomain: "digital-library-4e31d.firebaseapp.com",
+            projectId: "digital-library-4e31d",
+            storageBucket: "digital-library-4e31d.appspot.com",
+            messagingSenderId: "1096125685482",
+            appId: "1:1096125685482:web:0c0e1e7c8647dbd7a7a2c1",
+            measurementId: "G-RLHJ636RNX"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Create grade cards
+        const gradesContainer = document.getElementById('gradesContainer');
+        for (let i = 1; i <= 12; i++) {
+            const gradeCard = document.createElement('div');
+            gradeCard.className = 'grade-card';
+            gradeCard.innerHTML = `
+                <i class="fas fa-graduation-cap grade-icon"></i>
+                <h2>Grade ${i}</h2>
+                <div class="subject-description">Click to view subjects</div>
+            `;
+            gradeCard.addEventListener('click', () => {
+                window.location.href = `subjects.html?grade=${i}`;
+            });
+            gradesContainer.appendChild(gradeCard);
+        }
+    </script>
+</body>
+</html>
